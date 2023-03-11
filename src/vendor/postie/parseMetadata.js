@@ -7,8 +7,16 @@ const parseMetadata = (file, callback) => {
   const fr = new FileReader()
 
   fr.onload = () => {
-    let embed = getTextFromImage(fr.result)
+    let embed = undefined;
+    try {
+      embed = getTextFromImage(fr.result)
+    }
+    catch (e) {
+      console.log("Metadata parse failed!");
+      return;
+    }
 
+    console.log(embed);
     try {
       // Invoke AI / NMKD
       embed = JSON.parse(embed)
@@ -100,10 +108,12 @@ const enrichMetadataForPromptHero = promptInfo => {
   richPromptInfo.upscaler_raw = promptInfo.hires_upscaler || "";
   richPromptInfo.upscaler = findUpscaler(promptInfo.hires_upscaler);
 
-  const { model, version } = findModelByHash(promptInfo.model_hash)
-  richPromptInfo.model_used = model;
-  richPromptInfo.model_used_version = version;
-
+  const model = findModelByHash(promptInfo.model_hash);
+  console.log(model);
+  if (model) {
+    richPromptInfo.model_used = model["m"];
+    richPromptInfo.model_used_version =  model["v"];
+  }
   return richPromptInfo;
 }
 

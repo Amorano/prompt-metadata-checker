@@ -1,15 +1,18 @@
-import hashes from "vendor/postie/modelHashes"
+import modelHash from "vendor/postie/modelHash"
+import modelMap from "vendor/postie/modelMap"
 
 const findModelByHash = hash => {
   if (hash) {
-    var data = hashes[hash] ?? undefined
-    if (data) {
-      return { model: data["m"], version: data["v"] }
+    var version = modelHash[hash] ?? undefined
+    if (version) {
+      var model = modelMap[version] ?? { m: version["m"], v: version["v"] }
+      if (model) {
+        return model
+      }
     }
   }
-  return { model: undefined, version: undefined}
+  return undefined
 }
-
 
 /**
  * @param {string} sampler
