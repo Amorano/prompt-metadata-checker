@@ -2,23 +2,12 @@ import hashes from "vendor/postie/modelHashes"
 
 const findModelByHash = hash => {
   if (hash) {
-    for (const [model, versions] of Object.entries(hashes)) {
-      for (const [version, hashes] of Object.entries(versions)) {
-
-        // Matches hash from Civit AI
-        if (hashes.includes(hash.toUpperCase())) {
-          return { model, version }
-        }
-
-        // Matches hash from Hugging Face
-        if (hashes.includes(hash.toLowerCase())) {
-          return { model, version }
-        }
-      }
+    var data = hashes[hash] ?? undefined
+    if (data) {
+      return { model: data["m"], version: data["v"] }
     }
   }
-
-  return { model: undefined, version: undefined }
+  return { model: undefined, version: undefined}
 }
 
 

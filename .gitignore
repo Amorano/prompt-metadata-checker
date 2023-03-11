@@ -3,3 +3,7 @@ test-images/*.jpg
 .DS_Store
 dev/fetch-models.html
 dev/fetch-versions.html
+*.code-workspace
+bin/
+data/*
+.env
