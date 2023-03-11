@@ -9,11 +9,11 @@ const parseMetadata = (file, callback) => {
   fr.onload = () => {
     let embed = undefined;
     try {
-      embed = getTextFromImage(fr.result)
+      embed = getTextFromImage(fr.result);
     }
     catch (e) {
       console.log("Metadata parse failed!");
-      return;
+      embed = "";
     }
 
     console.log(embed);
@@ -66,19 +66,29 @@ const parseMetadata = (file, callback) => {
       })
       entries = Object.fromEntries(entries)
 
-      const [width, height] = entries.size.split('x')
+      // if nothing is parsable, pass back a default record
+      try {
+        const [width, height] = entries.size.split('x')
 
-      embed = {
-        ...entries,
-        prompt: split[0],
-        negative_prompt: split.find(
-            x => x.toLowerCase().startsWith('negative prompt: ')
-        )?.substr(17),
-        width,
-        height,
+        embed = {
+          ...entries,
+          prompt: split[0],
+          negative_prompt: split.find(
+              x => x.toLowerCase().startsWith('negative prompt: ')
+          )?.substr(17),
+          width,
+          height,
+        }
+
+        embed.program_used = "AUTOMATIC1111"
       }
-
-      embed.program_used = "AUTOMATIC1111"
+      catch (e) {
+        embed = {
+          prompt: "",
+          sampler: "",
+          program_used: ""
+        }
+      }
     }
 
     // Normalization
@@ -87,12 +97,13 @@ const parseMetadata = (file, callback) => {
       .replace(/^[\s?,]+|[\s?,]+$/g, '') // removes trailing/leading commas and whitespace
       .replace(/\s+/g, ' ')              // uses single spaces only
 
-    embed.prompt = normalizer(embed.prompt)
-    embed.negative_prompt = normalizer(embed.negative_prompt)
-
+    if (embed) {
+      embed.prompt = normalizer(embed.prompt)
+      embed.negative_prompt = normalizer(embed.negative_prompt)
+      embed = enrichMetadataForPromptHero(embed);
+    }
     // Handles the matching website
     console.log("Metadata parsed!", embed);
-    embed = enrichMetadataForPromptHero(embed);
     callback(embed);
   }
 
@@ -109,7 +120,6 @@ const enrichMetadataForPromptHero = promptInfo => {
   richPromptInfo.upscaler = findUpscaler(promptInfo.hires_upscaler);
 
   const model = findModelByHash(promptInfo.model_hash);
-  console.log(model);
   if (model) {
     richPromptInfo.model_used = model["m"];
     richPromptInfo.model_used_version =  model["v"];
