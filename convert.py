@@ -5,13 +5,14 @@ import re
 import json
 import urllib.request as req
 
-api_url_civitai = f"https://civitai.com/api/v1/models?type=Checkpoint&limit=100&nsfw=false&page="
+api_url_civitai = f"https://civitai.com/api/v1/models?limit=100&page="
 
 filters = [
     ('type', 'Checkpoint'),
-    ('stats.rating', 4.9),
-    ('stats.downloadCount', 500),
-    ('stats.favoriteCount', 1)
+    ('nsfw', False),
+    ('stats.rating', 4.95),
+    ('stats.downloadCount', 600),
+    ('stats.favoriteCount', 600)
 ]
 
 def pluckends(v):
@@ -25,9 +26,15 @@ def pluckends(v):
 
 # scrape all the model information we can -- it is open to use
 def civitai_modelScrape():
+
+    for x in os.listdir("data"):
+        if x.startswith("data_"):
+            os.remove(f"data/{x}")
+
     opener = req.URLopener()
     opener.addheader('User-Agent', 'ai-looking-for-friends')
     idx = 0
+    output = []
     while (idx := idx + 1):
         url = f"{api_url_civitai}{idx}"
         filenext = f"data/data_{idx}.json"
@@ -80,9 +87,9 @@ def crunchJsonFiles():
 
                 if d:
                     if isinstance(d, (bool, str)):
-                        passed = d == value
+                        passed = (d == value)
                     elif isinstance(d, (int, float)):
-                        passed = d >= value
+                        passed = (d >= value)
                     else:
                         print('unknown type {d}')
 
@@ -165,7 +172,7 @@ def crunchJsonFiles():
                     'm': m,
                     'v': v
                 }
-                parsed[k] = full
+                parsed[k.lower()] = full
 
     with open('src/vendor/postie/modelHash.js', 'w', encoding='utf-8') as f:
         f.write("const modelHash = ")
